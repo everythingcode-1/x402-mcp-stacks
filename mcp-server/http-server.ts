@@ -1,5 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
 import { WalletManager } from './core/walletManager.js';
 import { fetchWithPayment } from './core/fetchWithPayment.js';
@@ -28,7 +29,7 @@ const server = new Server(
 const walletManager = new WalletManager();
 
 // Register tools
-server.setRequestHandler('tools/list' as any, async () => {
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
@@ -103,14 +104,18 @@ server.setRequestHandler('tools/list' as any, async () => {
   };
 });
 
-server.setRequestHandler('tools/call' as any, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   const userId = 'remote-agent';
+
+  if (!args) {
+    throw new Error('Missing arguments');
+  }
 
   try {
     switch (name) {
       case 'search_research_data': {
-        const apiUrl = `${config.services.researchApiUrl}/search?q=${encodeURIComponent(args.query)}`;
+        const apiUrl = `${config.services.researchApiUrl}/search?q=${encodeURIComponent(String(args.query))}`;
         const response = await fetchWithPayment(apiUrl, {}, { userId, walletManager });
         const result = await response.json();
         return {
@@ -130,7 +135,7 @@ server.setRequestHandler('tools/call' as any, async (request) => {
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: args.text }),
+            body: JSON.stringify({ text: String(args.text) }),
           },
           { userId, walletManager }
         );
@@ -146,7 +151,7 @@ server.setRequestHandler('tools/call' as any, async (request) => {
       }
 
       case 'get_market_data': {
-        const apiUrl = `${config.services.marketApiUrl}/market/${args.symbol}`;
+        const apiUrl = `${config.services.marketApiUrl}/market/${String(args.symbol)}`;
         const response = await fetchWithPayment(apiUrl, {}, { userId, walletManager });
         const result = await response.json();
         return {
@@ -167,8 +172,8 @@ server.setRequestHandler('tools/call' as any, async (request) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              text: args.text,
-              targetLanguage: args.targetLanguage,
+              text: String(args.text),
+              targetLanguage: String(args.targetLanguage),
             }),
           },
           { userId, walletManager }
