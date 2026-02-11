@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "x402-stacks": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\HP\\OneDrive\\Dokumen\\Program\\hacktone\\x402-mcp-stacks\\dist\\mcp-server\\index.js"
+      ],
+      "env": {
+        "STACKS_NETWORK": "testnet",
+        "WALLET_DB_PATH": "C:\\Users\\HP\\OneDrive\\Dokumen\\Program\\hacktone\\x402-mcp-stacks\\wallets.db",
+        "WALLET_ENCRYPTION_SECRET": "x402-stacks-mcp-server-encryption-secret-key-min-32-characters"
+      }
+    }
+  }
+}

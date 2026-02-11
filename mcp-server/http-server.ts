@@ -236,13 +236,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // SSE endpoint for MCP
 app.get('/sse', async (req, res) => {
+  console.log('SSE connection request received');
+  
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
   const transport = new SSEServerTransport('/message', res);
-  await server.connect(transport);
+  
+  try {
+    await server.connect(transport);
+    console.log('MCP server connected via SSE');
+  } catch (error) {
+    console.error('SSE connection error:', error);
+    res.status(500).end();
+  }
 });
 
 // Message endpoint for MCP
 app.post('/message', async (req, res) => {
-  // Handle MCP messages
+  console.log('Message received:', req.body);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.json({ ok: true });
 });
 
