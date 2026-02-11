@@ -1,14 +1,17 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import express from 'express';
-import cors from 'cors';
 import { WalletManager } from './core/walletManager.js';
 import { fetchWithPayment } from './core/fetchWithPayment.js';
-import config from './config.js';
+import { config } from './config.js';
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 const server = new Server(
   {
@@ -22,10 +25,10 @@ const server = new Server(
   }
 );
 
-const walletManager = new WalletManager(config.walletDbPath, config.encryptionSecret);
+const walletManager = new WalletManager();
 
 // Register tools
-server.setRequestHandler('tools/list', async () => {
+server.setRequestHandler('tools/list' as any, async () => {
   return {
     tools: [
       {
@@ -100,15 +103,16 @@ server.setRequestHandler('tools/list', async () => {
   };
 });
 
-server.setRequestHandler('tools/call', async (request) => {
+server.setRequestHandler('tools/call' as any, async (request) => {
   const { name, arguments: args } = request.params;
   const userId = 'remote-agent';
 
   try {
     switch (name) {
       case 'search_research_data': {
-        const apiUrl = `${config.researchApiUrl}/search?q=${encodeURIComponent(args.query)}`;
-        const result = await fetchWithPayment(apiUrl, walletManager, userId);
+        const apiUrl = `${config.services.researchApiUrl}/search?q=${encodeURIComponent(args.query)}`;
+        const response = await fetchWithPayment(apiUrl, {}, { userId, walletManager });
+        const result = await response.json();
         return {
           content: [
             {
@@ -120,17 +124,17 @@ server.setRequestHandler('tools/call', async (request) => {
       }
 
       case 'analyze_text': {
-        const apiUrl = `${config.analysisApiUrl}/analyze`;
-        const result = await fetchWithPayment(
+        const apiUrl = `${config.services.analysisApiUrl}/analyze`;
+        const response = await fetchWithPayment(
           apiUrl,
-          walletManager,
-          userId,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: args.text }),
-          }
+          },
+          { userId, walletManager }
         );
+        const result = await response.json();
         return {
           content: [
             {
@@ -142,8 +146,9 @@ server.setRequestHandler('tools/call', async (request) => {
       }
 
       case 'get_market_data': {
-        const apiUrl = `${config.marketApiUrl}/market/${args.symbol}`;
-        const result = await fetchWithPayment(apiUrl, walletManager, userId);
+        const apiUrl = `${config.services.marketApiUrl}/market/${args.symbol}`;
+        const response = await fetchWithPayment(apiUrl, {}, { userId, walletManager });
+        const result = await response.json();
         return {
           content: [
             {
@@ -155,11 +160,9 @@ server.setRequestHandler('tools/call', async (request) => {
       }
 
       case 'translate_text': {
-        const apiUrl = `${config.translateApiUrl}/translate`;
-        const result = await fetchWithPayment(
+        const apiUrl = `${config.services.translateApiUrl}/translate`;
+        const response = await fetchWithPayment(
           apiUrl,
-          walletManager,
-          userId,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -167,8 +170,10 @@ server.setRequestHandler('tools/call', async (request) => {
               text: args.text,
               targetLanguage: args.targetLanguage,
             }),
-          }
+          },
+          { userId, walletManager }
         );
+        const result = await response.json();
         return {
           content: [
             {
