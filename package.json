@@ -6,11 +6,14 @@
   "scripts": {
     "build": "tsc",
     "start:mcp": "node dist/mcp-server/index.js",
+    "start:http": "node dist/mcp-server/http-server.js",
     "start:research": "node dist/demo-services/research-api/server.js",
     "start:analysis": "node dist/demo-services/analysis-api/server.js",
     "start:market": "node dist/demo-services/market-api/server.js",
     "start:translate": "node dist/demo-services/translate-api/server.js",
     "start:all-services": "concurrently \"npm run start:research\" \"npm run start:analysis\" \"npm run start:market\" \"npm run start:translate\"",
+    "dev:mcp": "ts-node mcp-server/index.ts",
+    "dev:http": "ts-node mcp-server/http-server.ts",
     "dev": "ts-node mcp-server/index.ts",
     "test": "node dist/test-standalone.js"
   },

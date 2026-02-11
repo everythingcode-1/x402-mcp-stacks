@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "mcp-server/http-server.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "mcp-server/http-server.ts"
+    }
+  ],
+  "env": {
+    "STACKS_NETWORK": "testnet",
+    "WALLET_DB_PATH": "/tmp/wallets.db",
+    "RESEARCH_API_URL": "http://localhost:3001",
+    "ANALYSIS_API_URL": "http://localhost:3002",
+    "MARKET_API_URL": "http://localhost:3003",
+    "TRANSLATE_API_URL": "http://localhost:3004"
+  }
+}
